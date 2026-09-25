@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ask about your Kenson health plan</title>
+<meta name="description" content="Type a question about a bill, a doctor, a prescription, or your ID card and get the next step. For Kenson Plastics employees.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FFFFFF;
+    --band: #EEF3F5;
+    --ink: #132A32;
+    --muted: #4F6670;
+    --line: #CFDCE1;
+    --plan: #1E56D9;
+    --plan-deep: #153E9E;
+    --plan-ink: #FFFFFF;
+    --label: #153E9E;
+    --caution: #F0A400;
+    --caution-bg: #FFF4D6;
+    --caution-ink: #5A3A00;
+    --bubble-user: #1E56D9;
+    --bubble-user-ink: #FFFFFF;
+    --bubble-bot: #EEF3F5;
+    --focus: #F0A400;
+    --font: "Atkinson Hyperlegible", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0F1F25;
+      --band: #152A31;
+      --ink: #EAF2F4;
+      --muted: #A7BEC6;
+      --line: #2B454E;
+      --plan: #3B78F0;
+      --plan-deep: #2A5BC9;
+      --label: #7FA8FF;
+      --caution-bg: #3A2A00;
+      --caution-ink: #FFD27A;
+      --bubble-user: #2A5BC9;
+      --bubble-bot: #152A31;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0F1F25;
+    --band: #152A31;
+    --ink: #EAF2F4;
+    --muted: #A7BEC6;
+    --line: #2B454E;
+    --plan: #3B78F0;
+    --plan-deep: #2A5BC9;
+    --label: #7FA8FF;
+    --caution-bg: #3A2A00;
+    --caution-ink: #FFD27A;
+    --bubble-user: #2A5BC9;
+    --bubble-bot: #152A31;
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  a { color: var(--plan); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+  button { font: inherit; }
+
+  header {
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; width: 100%; }
+  header .wrap { padding-top: 14px; padding-bottom: 12px; }
+  header h1 { font-size: 1.15rem; margin: 0 0 8px; line-height: 1.25; }
+  .calls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .calls a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--plan);
+    color: var(--plan-ink);
+    text-decoration: none;
+    font-size: 0.93rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .calls a.soft { background: transparent; color: var(--plan); border: 1.5px solid var(--line); font-weight: 400; }
+  .calls a span { font-weight: 400; opacity: 0.9; }
+
+  main { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .thread { display: flex; flex-direction: column; gap: 14px; padding: 18px 0 20px; }
+
+  .msg { max-width: 92%; }
+  .msg.user { align-self: flex-end; }
+  .msg.user .b {
+    background: var(--bubble-user);
+    color: var(--bubble-user-ink);
+    border-radius: 18px 18px 4px 18px;
+    padding: 11px 15px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .msg.bot { align-self: flex-start; }
+  .msg.bot .b {
+    background: var(--bubble-bot);
+    border-radius: 18px 18px 18px 4px;
+    padding: 13px 16px;
+  }
+  .msg.bot .b + .b { margin-top: 8px; }
+  .msg.bot .k { font-size: 0.86rem; color: var(--muted); margin-bottom: 4px; }
+  .msg.bot .t { white-space: pre-wrap; word-wrap: break-word; }
+  .msg.bot .t p { margin: 0 0 0.6em; }
+  .msg.bot .t p:last-child { margin-bottom: 0; }
+  .msg.bot .t .lead { font-weight: 700; color: var(--label); }
+  .msg.bot .ai { border: 1.5px solid var(--line); background: var(--paper); }
+  .msg.bot .ai .k { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .msg.bot .ai .stop {
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .msg.bot .ai .stop[hidden] { display: none; }
+  .msg.bot .note { font-size: 0.86rem; color: var(--muted); margin-top: 6px; }
+  .msg.bot .note button { background: none; border: 0; color: var(--plan); text-decoration: underline; cursor: pointer; padding: 0; font-size: inherit; }
+  .thinking { color: var(--muted); font-style: italic; }
+
+  .welcome { padding: 6px 0 0; }
+  .welcome p { margin: 0 0 12px; color: var(--muted); max-width: 56ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  .chips button {
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 8px 13px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: left;
+  }
+  .chips button:hover { border-color: var(--plan); color: var(--plan-deep); }
+
+  .ask {
+    position: sticky;
+    bottom: 0;
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .ask .wrap { padding-top: 10px; padding-bottom: 10px; }
+  .ask form { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+  .ask textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.4;
+    padding: 11px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    background: var(--paper);
+    color: var(--ink);
+    resize: none;
+    min-height: 46px;
+    max-height: 140px;
+  }
+  .ask textarea::placeholder { color: var(--muted); }
+  .ask button.send {
+    height: 46px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--plan);
+    color: var(--plan-ink);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .ask button.send:disabled { opacity: 0.55; cursor: default; }
+  .ask .fine { font-size: 0.82rem; color: var(--muted); margin: 8px 0 0; }
+  .ask .fine a { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Ask about your Kenson health plan</h1>
+    <div class="calls">
+      <a href="tel:+18002882078">Allied <span>800-288-2078</span></a>
+      <a href="tel:+13144513555">SHARx <span>314-451-3555, opt 1</span></a>
+      <a class="soft" href="https://alliedbenefit.com/ProviderNetworks" target="_blank" rel="noopener">Find a doctor</a>
+      <a class="soft" href="index.html">Full guide</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap">
+    <div class="thread" id="thread">
+      <div class="welcome" id="welcome">
+        <p>Type what's going on, in your own words. You'll get the next step and the right number to call.</p>
+        <div class="chips" id="chips">
+          <button type="button">I got a bill with no insurance discount on it</button>
+          <button type="button">The pharmacy says my medication isn't covered</button>
+          <button type="button">Does this doctor take my insurance?</button>
+          <button type="button">I got a collections letter</button>
+          <button type="button">I need my ID card</button>
+          <button type="button">I'm a new hire, where do I start?</button>
+          <button type="button">The bill is more than my EOB says I owe</button>
+          <button type="button">Is this EOB a bill?</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="ask">
+  <div class="wrap">
+    <form id="form">
+      <label for="q" style="position:absolute;left:-9999px">Your question</label>
+      <textarea id="q" rows="1" maxlength="600" placeholder="Ask a question…" autocomplete="off"></textarea>
+      <button type="submit" class="send" id="send">Ask</button>
+    </form>
+    <p class="fine">Answers come from Kenson's plan handouts. For what's covered or what you owe, call Allied. Don't type your Social Security number or medical details; this tool doesn't need them.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var ALLIED = '800-288-2078';
+  var SHARX = '314-451-3555, option 1';
+
+  // ---------- Instant answers: matched from the plan guide ----------
+  // Each intent: keywords (weight 1) and strong phrases (weight 3). Answer lines are plain text.
+  var INTENTS = [
+    {
+      id: 'balance_bill',
+      strong: ['more than my eob', 'more than the eob', 'higher than my eob', 'higher than the eob', 'more than what', 'more than allied', 'more than the plan', 'more than my responsibility', 'than allied said', 'allied said', 'pay more', 'charging me more', 'charged me more', 'balance bill', 'balance billed', 'pay the difference', 'difference between'],
+      words: ['difference', 'higher', 'more than', 'balance', 'eob says', 'owe'],
+      answer: [
+        'Don\'t pay the difference.',
+        'If the provider\'s bill is higher than the "your responsibility" line on your Allied EOB, you\'re being balance billed. Pay only what the EOB says; the rest is a dispute Allied handles for you.',
+        'Gather three things: an itemized bill with procedure codes (ask the billing office for "an itemized statement with procedure codes"), your Allied EOB for that date, and any letters.',
+        'Then call Allied at ' + ALLIED + ' and ask for Allied Advocate. Write down the case number and tell the provider the bill is under review.'
+      ]
+    },
+    {
+      id: 'collections',
+      strong: ['collections', 'collection agency', 'collection letter', 'sent to collections', 'debt collector', 'credit report'],
+      words: ['collection', 'collections', 'agency', 'threat'],
+      answer: [
+        'Don\'t ignore it, and don\'t pay it yet.',
+        'Pull the provider bill and the Allied EOB for that date of service. Ask the billing office for an itemized statement with procedure codes if you don\'t have one.',
+        'Call Allied at ' + ALLIED + ' today and ask for Allied Advocate. They open a case, contact the provider, and usually get the account held out of collections.',
+        'Tell Michelle or Emricka in HR so they can follow up. If the letter is about a service that never went to Allied, they can check whether the claim was ever received.'
+      ]
+    },
+    {
+      id: 'bill_no_adjustment',
+      strong: ['no insurance', 'no discount', 'not applied', 'never applied', 'full price', 'full amount', 'full charge', 'no adjustment', 'didn\'t apply', 'wasn\'t applied', 'didn\'t bill', 'never billed', 'didn\'t submit', 'never submitted', 'insurance wasn\'t'],
+      words: ['bill', 'billed', 'statement', 'charged', 'charge', 'invoice', 'owe', 'pay', 'hospital bill', 'doctor bill'],
+      answer: [
+        'Don\'t pay it yet.',
+        'A bill with no insurance payment, discount, or adjustment on it usually means the provider never sent the claim to Allied, or sent it to the wrong place.',
+        'Call the billing office on the bill and say: "My insurance is Allied Benefit Systems, not Blue Cross or UPMC. Please submit this claim to the address on the back of my card." Read them the claims address, Group number, and Subscriber ID from your ID card, and ask them to hold the account while it processes.',
+        'Then wait for your Allied EOB and pay only what it says you owe. If the provider won\'t resubmit, call Allied at ' + ALLIED + ' and ask for Allied Advocate.'
+      ]
+    },
+    {
+      id: 'eob',
+      strong: ['is this a bill', 'this a bill', 'eob a bill', 'eob is a bill', 'eob bill', 'is the eob a bill', 'explanation of benefits', 'what is an eob', 'what is this eob', 'what does eob', 'eob mean', 'read my eob', 'understand my eob', 'what is my eob', 'got an eob', 'received an eob'],
+      words: ['eob', 'explanation', 'remark', 'allowed amount', 'plan paid'],
+      answer: [
+        'An EOB is not a bill.',
+        'Allied sends an Explanation of Benefits for every claim, by mail or in the My Allied Portal app. It shows what the provider billed, the lower allowed amount, what the plan paid, and your responsibility (deductible, copay, or coinsurance).',
+        '"Your responsibility" is the only amount a provider should ever bill you. The claim number on the EOB is what Allied needs for any question, and the remark codes at the bottom explain any denial.',
+        'If a provider bills you more than the EOB\'s "your responsibility," call Allied at ' + ALLIED + ' and ask for Advocate.'
+      ]
+    },
+    {
+      id: 'denied',
+      strong: ['claim was denied', 'claim denied', 'got denied', 'was denied', 'denial', 'not paid', 'didn\'t pay', 'wasn\'t paid', 'pended', 'pending claim', 'remark code'],
+      words: ['denied', 'deny', 'rejected', 'reject', 'refused', 'why', 'reason', 'pending'],
+      answer: [
+        'Start with the remark code at the bottom of the EOB.',
+        'It usually says exactly what\'s missing or why the claim didn\'t pay: an itemized bill, accident details, other-insurance information, or a service that isn\'t covered. Many of these you can fix by sending Allied what they asked for.',
+        'Call Allied at ' + ALLIED + ' with the claim number from the EOB and ask them to walk you through it.',
+        'If the denial turns into a bill you don\'t think you owe, ask for Allied Advocate on the same call.'
+      ]
+    },
+    {
+      id: 'network_not_accept',
+      strong: ['don\'t take', 'doesn\'t take', 'dont take', 'doesnt take', 'won\'t take', 'not accept', 'doesn\'t accept', 'don\'t accept', 'doesnt accept', 'dont accept', 'take my insurance', 'accept my insurance', 'in network', 'in-network', 'out of network', 'out-of-network', 'first health', 'participate', 'participating', 'my insurance'],
+      words: ['network', 'accept', 'take', 'front desk', 'receptionist', 'office said', 'recognize', 'never heard'],
+      answer: [
+        'Ask the office the right question: "Do you accept the First Health network?"',
+        'Your network is First Health, not Allied by name. Front desks say "we don\'t take that" because they don\'t recognize the Allied card. Almost every major hospital and practice in western Pennsylvania participates in First Health.',
+        'If they still say no, have them look at the back of your Allied ID card, or call Allied at ' + ALLIED + ' and let Allied confirm it with the office.',
+        'You can check yourself at alliedbenefit.com/ProviderNetworks (choose First Health Network) or with Find Care in the My Allied Portal app.'
+      ]
+    },
+    {
+      id: 'find_provider',
+      strong: ['find a doctor', 'find a provider', 'find a specialist', 'find a hospital', 'find an urgent', 'need a doctor', 'need a specialist', 'looking for a doctor', 'new doctor', 'who can i see', 'where can i go', 'urgent care', 'primary care', 'pcp'],
+      words: ['doctor', 'provider', 'specialist', 'hospital', 'clinic', 'lab', 'imaging', 'mri', 'xray', 'x-ray', 'therapist', 'dentist', 'find', 'near me', 'close to'],
+      answer: [
+        'Search the First Health network first.',
+        'Go to alliedbenefit.com/ProviderNetworks, select First Health Network, then "Locate a provider." Pick the type (physician, hospital, urgent care, lab), enter your ZIP code, and refine by specialty. Or open the My Allied Portal app and use Find Care, which also shows cost estimates.',
+        'Before you book, ask the office: "Do you accept the First Health network?" For a procedure, check the facility and the anesthesia group too, not just the doctor.',
+        'Can\'t find what you need? Call Allied at ' + ALLIED + ' and ask them to find a provider for you.'
+      ]
+    },
+    {
+      id: 'rx',
+      strong: ['not covered', 'isn\'t covered', 'wasn\'t covered', 'won\'t cover', 'pharmacy said', 'pharmacy says', 'brand name', 'brand-name', 'specialty', 'sharx', 'new prescription', 'new medication', 'prescribed', 'pay cash', 'too expensive', 'insulin', 'inhaler', 'injection', 'infusion'],
+      words: ['pharmacy', 'prescription', 'medication', 'medicine', 'meds', 'drug', 'rx', 'refill', 'fill', 'pill', 'script', 'cvs', 'walgreens', 'rite aid', 'giant eagle'],
+      answer: [
+        'Don\'t pay cash at the counter.',
+        'Brand-name, high-cost, and specialty medications don\'t run through your insurance card at the pharmacy. SHARx sources them for you instead, usually at a much lower cost. Generics keep working the normal way with your ID card.',
+        'Call SHARx at ' + SHARX + ', or watch for their welcome text or email after the pharmacy tried to fill it. Set up your account at app.sharxplan.com and complete the HIPAA form so they can work for you. Have a photo ID, your household size and income, your Allied ID card, and your doctor\'s name and phone ready.',
+        'New hire, or a brand-new prescription? Call SHARx before your first fill. It\'s faster that way. And don\'t stop taking your medication while your case is open; ask your SHARx advocate about a bridge supply if you\'re running low.'
+      ]
+    },
+    {
+      id: 'id_card',
+      strong: ['id card', 'insurance card', 'my card', 'lost my card', 'need a card', 'new card', 'copy of my card', 'temporary card', 'digital card', 'replacement card'],
+      words: ['card', 'lost', 'replace', 'replacement', 'print', 'wallet'],
+      answer: [
+        'Your ID card is in the My Allied Portal app and at alliedbenefit.com/Members.',
+        'Sign in, open your ID card, and save a digital copy to your phone or print a temporary card. You can share the digital card straight to a doctor\'s office from the app. Lost the paper card? Request a new one in the app.',
+        'Not signed up yet? Go to alliedbenefit.com/Members, click Sign Up, enter your name and email, then verify with your date of birth plus your Member ID and Group number.',
+        'If you can\'t get in, call Allied at ' + ALLIED + '.'
+      ]
+    },
+    {
+      id: 'life_event',
+      strong: ['had a baby', 'having a baby', 'new baby', 'got married', 'getting married', 'got divorced', 'getting divorced', 'add my', 'add a dependent', 'remove my', 'lost coverage', 'lost her coverage', 'lost his coverage', 'lost their coverage', 'qualifying event', 'life event', 'turning 26', 'turned 26', 'open enrollment', 'enroll my', 'change my coverage', 'drop coverage'],
+      words: ['baby', 'born', 'married', 'marriage', 'divorce', 'spouse', 'wife', 'husband', 'child', 'kid', 'son', 'daughter', 'dependent', 'add', 'remove', 'enroll', 'coverage', 'adopt', '26'],
+      answer: [
+        'Tell Michelle or Emricka in HR within 30 days of the event.',
+        'Marriage, divorce, a new baby or adoption, a dependent turning 26, or a spouse losing other coverage all let you change your enrollment mid-year, but only inside that 30-day window. After 30 days you wait until open enrollment.',
+        'Bring whatever documents you have (a birth certificate, marriage certificate, or the letter showing coverage ended). HR handles the change with Allied; you don\'t need to call Allied yourself for this.'
+      ]
+    },
+    {
+      id: 'advocate',
+      strong: ['allied advocate', 'advocate', 'dispute a bill', 'dispute this bill', 'negotiate', 'fight this bill', 'help with a bill', 'help with this bill', 'itemized'],
+      words: ['dispute', 'appeal', 'argue', 'wrong bill', 'overcharged', 'itemize', 'codes'],
+      answer: [
+        'Allied Advocate works billing problems for you so you don\'t have to argue with a billing office.',
+        'Call them for a balance bill (provider charges more than your EOB says you owe), a provider that won\'t bill Allied or accept First Health, or any collections letter.',
+        'Have three things ready: an itemized bill with procedure codes (ask the billing office for "an itemized statement with procedure codes," not a summary), your Allied EOB for that date of service, and any letters. A photo of your ID card and the provider\'s billing phone number help too.',
+        'Call Allied at ' + ALLIED + ' and ask for Allied Advocate. Write down your case number, tell the provider the bill is under review, and keep paying only what the EOB says you owe.'
+      ]
+    },
+    {
+      id: 'new_hire',
+      strong: ['new hire', 'just started', 'just got hired', 'first day', 'first week', 'where do i start', 'how does the plan work', 'how does this work', 'how my plan works', 'new employee', 'getting started', 'set up my account', 'sign up for the portal', 'register', 'download the app', 'portal'],
+      words: ['new', 'start', 'started', 'onboard', 'setup', 'set up', 'app', 'account', 'login', 'log in', 'signup', 'sign up'],
+      answer: [
+        'Three names, three numbers, and you\'re set.',
+        'Allied runs the plan (ID cards, claims, EOBs, billing questions): ' + ALLIED + '. First Health is your doctor and hospital network: ask every office "Do you accept First Health?" SHARx handles brand-name and specialty prescriptions: ' + SHARX + '.',
+        'In your first 30 days: watch the mail for two Allied ID cards, download the My Allied Portal app (sign up at alliedbenefit.com/Members with your Member ID and Group number), save a digital card, check your doctors accept First Health, and if you already take a brand-name or specialty medication, call SHARx now, before your first refill.',
+        'Show your ID card at every visit. Pay any copay. Wait for the EOB, then pay only what it says you owe. Questions? Michelle or Emricka in HR.'
+      ]
+    },
+    {
+      id: 'costs',
+      strong: ['how much is my deductible', 'what is my deductible', 'left on my deductible', 'met my deductible', 'out of pocket', 'out-of-pocket', 'coinsurance', 'copay', 'co-pay', 'how much will', 'how much does', 'cost estimate', 'what will it cost'],
+      words: ['deductible', 'maximum', 'max', 'cost', 'price', 'estimate', 'expensive', 'afford', 'percent'],
+      answer: [
+        'Your amounts are on the front of your Allied ID card, and your progress toward them is in the My Allied Portal app.',
+        'Sign in to the app or alliedbenefit.com/Members to see how much of your deductible and out-of-pocket maximum you\'ve met this year. Find Care in the app also gives cost estimates for common procedures at in-network providers.',
+        'For a specific service or procedure, call Allied at ' + ALLIED + ' before you go. They can tell you what the plan covers and roughly what you\'d owe. Staying in the First Health network keeps your share lowest.'
+      ]
+    },
+    {
+      id: 'coverage',
+      strong: ['is it covered', 'is this covered', 'does the plan cover', 'does my plan cover', 'does insurance cover', 'will it be covered', 'covered under', 'prior authorization', 'pre-authorization', 'preauthorization', 'precert', 'pre-cert', 'precertification', 'pre-certification', 'need approval', 'surgery', 'procedure', 'mri', 'ct scan', 'physical therapy', 'chiropractor', 'mental health', 'counseling', 'therapy'],
+      words: ['cover', 'covered', 'coverage', 'benefit', 'approve', 'approval', 'authorization', 'scheduled', 'scheduling'],
+      answer: [
+        'For what\'s covered and whether you need pre-certification, call Allied at ' + ALLIED + '.',
+        'Some services need pre-certification before they happen; the contact for that is on the back of your ID card. Your provider\'s office usually handles it, but confirm it\'s done before a scheduled procedure.',
+        'Before anything scheduled, also check that the doctor, the facility, and the anesthesia group all accept First Health. All three. Use Find Care in the My Allied Portal app or ask Allied to check for you.',
+        'If you\'d like to know the cost ahead of time, ask Allied when you call.'
+      ]
+    },
+    {
+      id: 'hr',
+      strong: ['michelle', 'emricka', 'hr', 'human resources', 'who do i talk to', 'who do i call', 'who should i call', 'who can help', 'rodgers'],
+      words: ['talk', 'contact', 'call', 'help', 'office', 'broker'],
+      answer: [
+        'Who to call, in this order.',
+        'Allied Member Services at ' + ALLIED + ', the number on your ID card. Monday to Friday 8 am to 8 pm and Saturday 9 am to noon, Central time. Claims, ID cards, finding a doctor, bills, and Allied Advocate.',
+        'SHARx at ' + SHARX + ' for brand-name and specialty prescriptions.',
+        'Michelle or Emricka in HR for enrollment, life events, and anything stuck. They can check whether Allied received a claim and will bring in Rodgers Insurance Group, the plan\'s broker, if it can\'t be resolved.'
+      ]
+    },
+    {
+      id: 'hours',
+      strong: ['what are the hours', 'hours', 'phone number', 'number for allied', 'allied number', 'number for sharx', 'sharx number', 'how do i reach', 'how do i contact'],
+      words: ['open', 'closed', 'weekend', 'saturday', 'sunday', 'number', 'phone', 'website', 'reach'],
+      answer: [
+        'Allied: ' + ALLIED + '. Monday to Friday 8 am to 8 pm, Saturday 9 am to noon, Central time. Online anytime at alliedbenefit.com/Members or in the My Allied Portal app.',
+        'SHARx: ' + SHARX + '. Portal at app.sharxplan.com.',
+        'First Health provider search: alliedbenefit.com/ProviderNetworks.',
+        'HR: Michelle or Emricka.'
+      ]
+    }
+  ];
+
+  var FALLBACK = [
+    'I couldn\'t match that to a situation in the plan guide.',
+    'Try a few plain words, like "bill," "pharmacy," "collections," "ID card," or "find a doctor." Or tap one of the examples above.',
+    'For anything about what\'s covered or what you owe, call Allied at ' + ALLIED + ' with your ID card in hand. For enrollment or a life event, see Michelle or Emricka in HR.'
+  ];
+
+  function norm(s) { return ' ' + s.toLowerCase().replace(/[\u2019\u2018]/g, '\'').replace(/[^a-z0-9'\- ]+/g, ' ').replace(/\s+/g, ' ').trim() + ' '; }
+
+  function matchLocal(q) {
+    var t = norm(q);
+    var best = null, bestScore = 0, second = 0;
+    INTENTS.forEach(function (it) {
+      var score = 0;
+      it.strong.forEach(function (p) { if (t.indexOf(' ' + p + ' ') !== -1 || t.indexOf(' ' + p) !== -1) score += 3; });
+      it.words.forEach(function (w) { if (t.indexOf(' ' + w) !== -1) score += 1; });
+      if (score > bestScore) { second = bestScore; bestScore = score; best = it; }
+      else if (score > second) { second = score; }
+    });
+    if (!best || bestScore < 2) return null;
+    return best;
+  }
+
+  // ---------- Claude answers, when the viewer's account allows it ----------
+  var RULES = [
+    'You are the help desk for the Kenson Plastics employee health plan. You answer questions from Kenson employees, many of them on a phone on a manufacturing floor, often in the middle of a problem: a bill in hand, a pharmacy counter, a doctor\'s front desk.',
+    '',
+    'How to answer: plain English, short, no headings, no bullet lists, no markdown. Two to five short sentences, then the one number or person to contact. Lead with the action ("Don\'t pay it yet." / "Call SHARx before your first fill."). Use the same language the employee wrote in. Never invent a dollar amount, a deductible, a copay, whether a specific doctor is in network, or whether a specific service is covered; for those, send them to Allied at 800-288-2078 with their ID card. Do not give medical advice. If the question isn\'t about the plan, say so kindly in one sentence and point to HR or Allied. If the message contains a Social Security number or other sensitive identifiers, do not repeat them.',
+    '',
+    'Plan facts:',
+    '- Allied Benefit Systems administers the plan (claims, ID cards, EOBs, finding doctors, billing questions). Member Services 800-288-2078, Monday–Friday 8 am–8 pm and Saturday 9 am–noon Central. Portal alliedbenefit.com/Members and the My Allied Portal app: digital ID card, claims, EOBs, deductible progress, Find Care with cost estimates. Sign up with name, email, date of birth, Member ID and Group number from the card.',
+    '- Network: First Health, a national PPO. Offices often say "we don\'t take that" because they don\'t recognize Allied. The right question is "Do you accept the First Health network?" (not Blue Cross, not UPMC, not Aetna). Search: alliedbenefit.com/ProviderNetworks, select First Health Network, Locate a provider, choose type, search by ZIP. For procedures check the doctor, the facility, and the anesthesia group. Out-of-network providers can bill the full charge and it doesn\'t count toward the out-of-pocket maximum. Allied can find a provider for you.',
+    '- ID card: back has the claims submission address and pre-certification contact; front has Group number, Subscriber ID, deductible. Show it at every visit.',
+    '- EOB (Explanation of Benefits) is not a bill. Shows billed amount, allowed amount (First Health discount), plan paid, your responsibility (deductible/copay/coinsurance), claim number, remark codes explaining denials. "Your responsibility" is the only amount a provider should bill.',
+    '- Bill with no insurance payment/discount/adjustment: the provider never billed Allied or billed the wrong place. Don\'t pay yet. Call the billing office: "My insurance is Allied Benefit Systems, not Blue Cross or UPMC. Please submit this claim to the address on the back of my card." Give claims address, Group number, Subscriber ID; ask them to hold the account. Wait for the EOB, pay only what it says.',
+    '- Bill higher than the EOB\'s "your responsibility": balance billing. Don\'t pay the difference. Get Allied Advocate involved.',
+    '- Allied Advocate: reached by calling 800-288-2078 and asking for Advocate. Use for balance bills, a provider that won\'t bill Allied or accept First Health, collections letters, confusing denials, or pricing a scheduled procedure. Needs: an itemized bill with procedure codes (ask billing office for "an itemized statement with procedure codes"; a summary statement won\'t work), the Allied EOB for that date of service (claim number), any letters. Helpful: photo of ID card, provider billing phone and account number. Advocate opens a case with a case number; employee tells the provider "this bill is under review by my health plan\'s advocate, case number ___, please hold the account." Keep paying only the undisputed EOB amount. Send Advocate any new letters. Answer their calls promptly.',
+    '- Collections letter: don\'t ignore, don\'t pay yet; pull the bill and EOB; call Allied Advocate the same day; tell HR.',
+    '- Denied or pended claim: read the remark code at the bottom of the EOB; call Allied with the claim number.',
+    '- Prescriptions: generics work normally at the pharmacy with the Allied card. Brand-name, high-cost, and specialty medications are NOT covered when the insurance card is swiped at the pharmacy; SHARx sources them instead, usually at much lower cost. Signal: pharmacy says it isn\'t covered, or a SHARx welcome email/text arrives after an attempted fill. Don\'t pay cash. Best: call SHARx BEFORE the first fill (new hires already on a brand-name med, a new brand-name prescription, a switch from generic to brand). SHARx 314-451-3555 option 1; portal app.sharxplan.com; set up account, verify contact info, complete HIPAA form; have photo ID, household size and income (sometimes proof of income), Allied ID card, prescribing doctor\'s name and phone. Don\'t stop taking medication while the case is open; ask about a bridge supply if running low. Overview video sharxplan.com/OEVideo.',
+    '- HR: Michelle or Emricka. Enrollment, life events (report within 30 days: marriage, divorce, birth/adoption, dependent turning 26, spouse losing coverage; after 30 days wait for open enrollment), and help when something is stuck. They can check whether Allied received a claim and help gather paperwork. They bring in Rodgers Insurance Group (the plan\'s broker) if Allied can\'t resolve it.',
+    '- Order of contact: Allied (number on the card) first, then Michelle or Emricka, then Rodgers through HR.',
+    '- Terms: deductible (paid first each year), copay (fixed per visit), coinsurance (your percentage of the allowed amount after deductible), out-of-pocket maximum (after it the plan pays 100% in network), allowed amount (the discounted price an in-network provider agreed to; they can\'t bill above it).'
+  ].join('\n');
+
+  var sampleFn = null;        // resolved capability, or null
+  var aiOff = false;          // set true after a permanent error
+  var turns = [];             // chat history for the AI: {role, content}
+  var ctl = null;             // AbortController for the current call
+  var busy = false;
+
+  window.claude && typeof window.claude.use === 'function' && window.claude.use('sample').then(function (s) { sampleFn = s || null; }).catch(function () { sampleFn = null; });
+
+  // ---------- Rendering ----------
+  var thread = document.getElementById('thread');
+  var main = document.getElementById('main');
+  var welcome = document.getElementById('welcome');
+  var form = document.getElementById('form');
+  var q = document.getElementById('q');
+  var send = document.getElementById('send');
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  // Turn phone numbers and the few known web addresses into links; everything else stays text.
+  function linkify(s) {
+    var h = esc(s);
+    h = h.replace(/800-288-2078/g, '<a href="tel:+18002882078">800-288-2078</a>');
+    h = h.replace(/314-451-3555/g, '<a href="tel:+13144513555">314-451-3555</a>');
+    h = h.replace(/alliedbenefit\.com\/ProviderNetworks/g, '<a href="https://alliedbenefit.com/ProviderNetworks" target="_blank" rel="noopener">alliedbenefit.com/ProviderNetworks</a>');
+    h = h.replace(/alliedbenefit\.com\/Members/g, '<a href="https://alliedbenefit.com/Members" target="_blank" rel="noopener">alliedbenefit.com/Members</a>');
+    h = h.replace(/app\.sharxplan\.com/g, '<a href="https://app.sharxplan.com" target="_blank" rel="noopener">app.sharxplan.com</a>');
+    h = h.replace(/sharxplan\.com\/OEVideo/g, '<a href="http://www.sharxplan.com/OEVideo" target="_blank" rel="noopener">sharxplan.com/OEVideo</a>');
+    return h;
+  }
+
+  function paras(lines, leadFirst) {
+    return lines.map(function (l, i) {
+      return '<p' + (leadFirst && i === 0 ? ' class="lead"' : '') + '>' + linkify(l) + '</p>';
+    }).join('');
+  }
+
+  function scrollDown() { main.scrollTop = main.scrollHeight; }
+
+  function addUser(text) {
+    var el = document.createElement('div');
+    el.className = 'msg user';
+    el.innerHTML = '<div class="b"></div>';
+    el.firstChild.textContent = text;
+    thread.appendChild(el);
+    scrollDown();
+  }
+
+  function addBot(localLines, leadFirst) {
+    var el = document.createElement('div');
+    el.className = 'msg bot';
+    el.innerHTML = '<div class="b"><div class="k">From your plan guide</div><div class="t">' + paras(localLines, leadFirst) + '</div></div>';
+    thread.appendChild(el);
+    scrollDown();
+    return el;
+  }
+
+  function addAiBubble(parent) {
+    var b = document.createElement('div');
+    b.className = 'b ai';
+    b.innerHTML = '<div class="k"><span>For your exact question</span><button type="button" class="stop">Stop</button></div><div class="t"><span class="thinking">Thinking…</span></div>';
+    parent.appendChild(b);
+    scrollDown();
+    return b;
+  }
+
+  function renderAiText(box, text) {
+    var lines = text.split(/\n{2,}|\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+    box.innerHTML = paras(lines, false);
+  }
+
+  var ERR_COPY = {
+    rate_limited: 'Claude is busy right now. The quick answer above still applies, or try again in a minute.',
+    session_expired: 'Sign in to Claude again for a tailored answer. The quick answer above still applies.',
+    refused: 'That one I can\'t help with here. Call Allied at 800-288-2078.',
+    empty_completion: 'No answer came back. Try rephrasing your question.',
+    prompt_too_large: 'That was a long conversation. Refresh the page and ask again.',
+    upstream_error: 'Connection hiccup.'
+  };
+  var PERMANENT = { not_granted: 1, sampling_disabled: 1, not_declared: 1, capability_disabled: 1, capability_removed: 1 };
+
+  function ask(text) {
+    if (busy) return;
+    text = text.trim();
+    if (!text) return;
+    busy = true; send.disabled = true;
+    if (welcome) { welcome.remove(); welcome = null; }
+    addUser(text);
+
+    var hit = matchLocal(text);
+    var bot = addBot(hit ? hit.answer : FALLBACK, !!hit);
+
+    if (!sampleFn || aiOff) { finish(); return; }
+
+    // Ask Claude with the standing rules plus recent turns.
+    var box = addAiBubble(bot);
+    var out = box.querySelector('.t');
+    var stop = box.querySelector('.stop');
+    ctl = new AbortController();
+    stop.addEventListener('click', function () { if (ctl) ctl.abort(); });
+
+    turns.push({ role: 'user', content: text });
+    while (turns.length > 10) turns.shift();
+    var input = [{ role: 'user', content: RULES }].concat(turns);
+
+    sampleFn(input, {
+      cache: false,
+      modelTier: 'quick',
+      signal: ctl.signal,
+      onText: function (u) { renderAiText(out, u.text); scrollDown(); }
+    }).then(function (r) {
+      turns.push({ role: 'assistant', content: r.text });
+      renderAiText(out, r.text);
+      if (r.truncated) note(box, 'Cut short. Ask a shorter question for the rest.');
+    }).catch(function (e) {
+      var code = (e && e.code) || 'upstream_error';
+      if (PERMANENT[code]) { aiOff = true; box.remove(); return; }
+      if (code === 'cancelled') { if (e.text) renderAiText(out, e.text); else box.remove(); return; }
+      if (e && e.text && code !== 'refused') renderAiText(out, e.text); else out.innerHTML = '';
+      if (code === 'refused') { turns.pop(); }
+      var msg = ERR_COPY[code] || ERR_COPY.upstream_error;
+      note(box, msg, code === 'upstream_error' ? function () { box.remove(); turns.pop(); busy = false; send.disabled = false; ask(text); } : null);
+      if (!out.innerHTML) out.innerHTML = '';
+    }).then(function () {
+      stop.hidden = true;
+      finish();
+    });
+  }
+
+  function note(box, msg, retry) {
+    var n = document.createElement('div');
+    n.className = 'note';
+    n.textContent = msg + ' ';
+    if (retry) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = 'Try again';
+      b.addEventListener('click', retry);
+      n.appendChild(b);
+    }
+    box.appendChild(n);
+    scrollDown();
+  }
+
+  function finish() {
+    busy = false; send.disabled = false; ctl = null;
+    q.focus();
+  }
+
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var text = q.value;
+    q.value = ''; q.style.height = 'auto';
+    ask(text);
+  });
+  q.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); form.requestSubmit ? form.requestSubmit() : send.click(); }
+  });
+  q.addEventListener('input', function () { q.style.height = 'auto'; q.style.height = Math.min(q.scrollHeight, 140) + 'px'; });
+
+  document.getElementById('chips').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button');
+    if (b) ask(b.textContent);
+  });
+})();
+</script>
+</body>
+</html>
